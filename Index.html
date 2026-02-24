@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COGNITIVE LOGIC | Pure Data Node</title>
+  <meta name="description" content="Roberto Bob Malini — AI-first data infrastructure. QEN Score: framework etico per la filiera corta bolognese." />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080c0a;
+      --bg2: #0d1410;
+      --bg3: #111a14;
+      --green: #00ff6a;
+      --green-dim: #00c452;
+      --green-dark: #003d1a;
+      --amber: #ffb700;
+      --red: #ff3c3c;
+      --text: #c8d8cc;
+      --text-dim: #6a8a72;
+      --border: #1a2e20;
+      --border-bright: #2a4a32;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-space: 'Space Mono', monospace;
+    }
+
+```
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SCANLINE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* NOISE TEXTURE */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 999;
+}
+
+a { color: var(--green); text-decoration: none; }
+a:hover { text-decoration: underline; color: #fff; }
+
+/* STATUS BAR */
+.statusbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 32px;
+  background: var(--green-dark);
+  border-bottom: 1px solid var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--green);
+  z-index: 100;
+  letter-spacing: 0.08em;
+}
+.statusbar .blink {
+  animation: blink 1.2s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.statusbar-right { display: flex; gap: 24px; }
+.status-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--green); }
+  50% { opacity: 0.4; box-shadow: none; }
+}
+
+/* MAIN LAYOUT */
+main {
+  padding-top: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* HERO */
+.hero {
+  padding: 80px 0 60px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-tag {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero-tag span { color: var(--green); }
+
+.hero h1 {
+  font-family: var(--font-space);
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.hero h1 .accent { color: var(--green); }
+
+.hero-subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.hero-manifesto {
+  font-size: 15px;
+  color: var(--text);
+  max-width: 620px;
+  line-height: 1.9;
+  border-left: 2px solid var(--green);
+  padding-left: 20px;
+  margin-bottom: 48px;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+.meta-item strong {
+  display: block;
+  color: var(--green);
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* SECTION */
+section {
+  padding: 60px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.section-tag {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--green);
+  text-transform: uppercase;
+  border: 1px solid var(--green);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-bright);
+}
+
+h2 {
+  font-family: var(--font-space);
+  font-size: 22px;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+h3 {
+  font-family: var(--font-space);
+  font-size: 14px;
+  color: var(--green-dim);
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+p { color: var(--text); margin-bottom: 16px; }
+
+/* QEN SECTION */
+.qen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+@media (max-width: 600px) { .qen-grid { grid-template-columns: 1fr; } }
+
+.qen-cell {
+  background: var(--bg2);
+  padding: 24px;
+  transition: background 0.2s;
+}
+.qen-cell:hover { background: var(--bg3); }
+
+.qen-cell .label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.qen-cell .value {
+  font-size: 20px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.qen-cell .desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* FORMULA */
+.formula-box {
+  background: var(--green-dark);
+  border: 1px solid var(--green);
+  padding: 24px 32px;
+  margin: 32px 0;
+  font-size: 15px;
+  color: var(--green);
+  font-family: var(--font-space);
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.formula-box::before {
+  content: 'FORMULA';
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+}
+
+.formula-box .weights {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.formula-box .weights span { color: var(--green-dim); }
+
+/* TIMELINE */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0;
+  position: relative;
+}
+
+.timeline-week {
+  padding: 20px 20px 20px 0;
+  border-right: 1px solid var(--border-bright);
+  text-align: right;
+}
+
+.timeline-week .week-num {
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 700;
+  display: block;
+}
+
+.timeline-week .week-date {
+  font-size: 10px;
+  color: var(--text-dim);
+  display: block;
+  margin-top: 4px;
+}
+
+.timeline-content {
+  padding: 20px 0 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline-item:last-child .timeline-content { border-bottom: none; }
+
+.timeline-content h4 {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.timeline-content .channels {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.channel-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-bright);
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.channel-tag.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0,255,106,0.05);
+}
+
+.week-star .week-num::after { content: ' ★'; color: var(--amber); }
+
+/* TARGETS */
+.targets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.target-card {
+  background: var(--bg2);
+  padding: 20px;
+  transition: background 0.2s;
+}
+.target-card:hover { background: var(--bg3); }
+
+.target-card .name {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.target-card .location {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.target-card .scores {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.score-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  background: var(--green-dark);
+  color: var(--green-dim);
+  border: 1px solid var(--green-dark);
+  letter-spacing: 0.08em;
+}
+
+/* NAV LINKS */
+.nav-links {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border-bright);
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 12px 20px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-right: 1px solid var(--border-bright);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav-link:hover, .nav-link.active {
+  background: var(--green-dark);
+  color: var(--green);
+}
+
+.nav-link:last-child { border-right: none; }
+
+/* LINKS SECTION */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.link-card {
+  background: var(--bg2);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+.link-card:hover {
+  background: var(--green-dark);
+  text-decoration: none;
+}
+
+.link-card .lc-tag {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.link-card .lc-name {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.link-card .lc-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.link-card:hover .lc-name { color: var(--green); }
+
+/* FOOTER */
+footer {
+  padding: 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+footer span { color: var(--green); }
+
+/* ANIMATIONS */
+.fade-in {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in:nth-child(1) { animation-delay: 0.1s; }
+.fade-in:nth-child(2) { animation-delay: 0.2s; }
+.fade-in:nth-child(3) { animation-delay: 0.3s; }
+.fade-in:nth-child(4) { animation-delay: 0.4s; }
+.fade-in:nth-child(5) { animation-delay: 0.5s; }
+
+/* CURSOR BLINK */
+.cursor::after {
+  content: '█';
+  animation: blink 1s step-end infinite;
+  color: var(--green);
+  margin-left: 4px;
+}
+
+/* TERMINAL LINE */
+.terminal-line {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.terminal-line .prompt { color: var(--green); margin-right: 8px; }
+.terminal-line .cmd { color: var(--text); }
+```
+
+  </style>
+</head>
+<body>
+
+  <!-- STATUS BAR -->
+
+  <div class="statusbar">
+    <div><span class="status-dot"></span> COGNITIVE LOGIC — OPERATIONAL <span class="blink">|</span></div>
+    <div class="statusbar-right">
+      <span>NODE: cognitivelogic.it</span>
+      <span>v2.0 · QEN ACTIVE</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <main>
+
+```
+<!-- HERO -->
+<div class="hero fade-in">
+  <div class="hero-tag">[ <span>IDENTITY VERIFIED</span> ] — ROBERTO BOB MALINI · SENIOR ANALYST</div>
+  <h1><span class="accent">COGNITIVE</span><br>LOGIC</h1>
+  <div class="hero-subtitle">AI-FIRST DATA INFRASTRUCTURE · BOLOGNA, IT</div>
+  <p class="hero-manifesto">
+    "Beyond the graphical interface: data must be intelligible, transparent, and immediately operational for autonomous agents."
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <strong>Architecture</strong>
+      AI-First Data Infrastructure
+    </div>
+    <div class="meta-item">
+      <strong>Status</strong>
+      <span style="color:var(--green)">● Operational</span>
+    </div>
+    <div class="meta-item">
+      <strong>Active Project</strong>
+      QEN Score Framework
+    </div>
+    <div class="meta-item">
+      <strong>Engine</strong>
+      Knowledge Graph · Neo4j
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div style="padding-top:48px;" class="fade-in">
+  <div class="nav-links">
+    <a href="#qen" class="nav-link active">[ QEN ]</a>
+    <a href="#laboratorio" class="nav-link">[ Laboratorio ]</a>
+    <a href="#calendario" class="nav-link">[ Calendario ]</a>
+    <a href="#target" class="nav-link">[ Piloti ]</a>
+    <a href="#connessioni" class="nav-link">[ Connessioni ]</a>
+  </div>
+</div>
+
+<!-- QEN SECTION -->
+<section id="qen" class="fade-in">
+  <div class="section-header">
+    <div class="section-tag">01 · QEN</div>
+    <div class="section-line"></div>
+  </div>
+  <h2>Quota Etica Naturale</h2>
+  <p style="max-width:620px; margin-bottom:32px; font-size:14px; line-height:1.9;">
+    Il QEN Score è un framework di rating etico-sostenibile per ristoratori, botteghe e piccoli produttori. Misura in modo algoritmico e trasparente il valore etico reale di un'impresa nella filiera corta bolognese.
+  </p>
+
+  <div class="formula-box">
+    QEN Score = (V_a × 0,35) + (V_s × 0,40) + (V_t × 0,25)
+    <div class="weights">
+      <div><span>V_a</span> · Valore Ambientale · 35%</div>
+      <div><span>V_s</span> · Valore Sociale · 40%</div>
+      <div><span>V_t</span> · Valore Territoriale · 25%</div>
+    </div>
+  </div>
+
+  <div class="qen-grid">
+    <div class="qen-cell">
+      <div class="label">V_a · Ambientale</div>
+      <div class="value">35%</div>
+      <div class="desc">Impatto ambientale della filiera, emissioni CO₂, energia rinnovabile, packaging sostenibile.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">V_s · Sociale</div>
+      <div class="value">40%</div>
+      <div class="desc">Inclusione lavorativa, condizioni contrattuali, welfare, diversità nel team e nella catena.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">V_t · Territoriale</div>
+      <div class="value">25%</div>
+      <div class="desc">Km zero, fornitori locali, radicamento nel tessuto economico e culturale bolognese.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">Compliance</div>
+      <div class="value">CSRD</div>
+      <div class="desc">Allineato agli standard GRI e alla direttiva europea CSRD per le PMI del settore HoReCa.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">asset: Specifiche Tecniche Algoritmo QEN — 9 indicatori · formula completa</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">asset: QEN Pitch LinkedIn — presentazione 10 slide per ristoratori</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">engine: Knowledge Graph Neo4j — struttura semantica machine-readable</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">status: pilota attivo · Bologna 2026<span class="cursor"></span></span></div>
+  </div>
+</section>
+
+<!-- LABORATORIO -->
+<section id="laboratorio">
+  <div class="section-header">
+    <div class="section-tag">02 · Laboratorio</div>
+    <div class="section-line"></div>
+  </div>
+  <h2>Pagina Laboratorio QEN</h2>
+  <p style="max-width:620px; margin-bottom:32px; font-size:14px; line-height:1.9;">
+    Il laboratorio è il nodo vivo di CognitiveLogic: documenta la struttura semantica del QEN, i dati pilota in tempo reale e l'evoluzione del Knowledge Graph. Si aggiorna in parallelo ai contenuti pubblicati su Substack e LinkedIn.
+  </p>
+
+  <div class="qen-grid">
+    <div class="qen-cell">
+      <div class="label">Knowledge Graph</div>
+      <div class="value" style="font-size:14px;">Neo4j · Struttura Semantica</div>
+      <div class="desc">Nodi, relazioni semantiche e dati pilota. Architettura machine-readable per agenti autonomi.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">Infrastruttura</div>
+      <div class="value" style="font-size:14px;">Hetzner · GitHub</div>
+      <div class="desc">Stack tecnico CognitiveLogic — deployment, versionamento e documentazione pubblica.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">FAQ Pubbliche</div>
+      <div class="value" style="font-size:14px;">7 FAQ · in uscita</div>
+      <div class="desc">Cos'è la QEN? Perché "naturale"? Che relazione con la CSRD? A chi serve? — pubblicate su LinkedIn.</div>
+    </div>
+    <div class="qen-cell">
+      <div class="label">Parametri</div>
+      <div class="value" style="font-size:14px;">Pubblici · Open</div>
+      <div class="desc">Formula di calcolo e indicatori pubblici. Trasparenza come principio fondante del framework.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:8px;">
+    <a href="https://github.com/CognitiveLogic2026" style="display:inline-block; border:1px solid var(--green); padding:10px 24px; font-size:12px; color:var(--green); letter-spacing:0.1em; text-transform:uppercase; margin-right:12px; margin-bottom:8px; transition:all 0.2s;"
+      onmouseover="this.style.background='var(--green-dark)'" onmouseout="this.style.background='transparent'">
+      → GitHub · CognitiveLogic2026
+    </a>
+    <a href="https://fuorimenu.substack.com" style="display:inline-block; border:1px solid var(--border-bright); padding:10px 24px; font-size:12px; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; transition:all 0.2s;"
+      onmouseover="this.style.borderColor='var(--green)'; this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border-bright)'; this.style.color='var(--text-dim)'">
+      → Fuori Menu · Substack
+    </a>
+  </div>
+</section>
+
+<!-- CALENDARIO -->
+<section id="calendario">
+  <div class="section-header">
+    <div class="section-tag">03 · Calendario</div>
+    <div class="section-line"></div>
+  </div>
+  <h2>Piano Editoriale QEN · Feb–Apr 2026</h2>
+  <p style="max-width:620px; margin-bottom:32px; font-size:14px; line-height:1.9;">
+    7 settimane di contenuti coordinati su 4 canali: Substack, LinkedIn Roberto, LinkedIn CognitiveLogic, CognitiveLogic.it.
+  </p>
+
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="timeline-week week-star">
+        <span class="week-num">SETT. 1</span>
+        <span class="week-date">21–27 feb</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Lancio QEN — Struttura e Presentazione</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Cos'è il QEN Score · Lancio presentazione LinkedIn · Pagina laboratorio attiva</p>
+        <div class="channels">
+          <span class="channel-tag active">Substack</span>
+          <span class="channel-tag active">LinkedIn RBM</span>
+          <span class="channel-tag active">LinkedIn CL</span>
+          <span class="channel-tag active">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 2</span>
+        <span class="week-date">28 feb–6 mar</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Origini — Bologna 2020, Portici UNESCO</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Storia e contesto · Perché "naturale"? · Filiera corta come etica misurabile · Knowledge Graph Neo4j</p>
+        <div class="channels">
+          <span class="channel-tag active">Substack</span>
+          <span class="channel-tag active">LinkedIn RBM</span>
+          <span class="channel-tag active">LinkedIn CL</span>
+          <span class="channel-tag active">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 3</span>
+        <span class="week-date">7–13 mar</span>
+      </div>
+      <div class="timeline-content">
+        <h4>CSRD & Compliance — Opportunità per HoReCa</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Obblighi, scadenze, standard GRI · Perché le banche guardano l'etica · Infrastruttura tecnica pubblica</p>
+        <div class="channels">
+          <span class="channel-tag">Substack</span>
+          <span class="channel-tag">LinkedIn RBM</span>
+          <span class="channel-tag">LinkedIn CL</span>
+          <span class="channel-tag">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 4</span>
+        <span class="week-date">14–20 mar</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Caso Concreto — Primo Pilota Bologna</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Rating QEN come strumento bancario · Dal furgone diesel al risciò · PMI, HoReCa, botteghe, investitori</p>
+        <div class="channels">
+          <span class="channel-tag">Substack</span>
+          <span class="channel-tag">LinkedIn RBM</span>
+          <span class="channel-tag">LinkedIn CL</span>
+          <span class="channel-tag">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 5</span>
+        <span class="week-date">21–27 mar</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Knowledge Graph — Aggiornamento Semantico</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Nuovi nodi · Relazioni semantiche · L'etica misurabile nel quartiere · V_s e inclusione lavorativa</p>
+        <div class="channels">
+          <span class="channel-tag">Substack</span>
+          <span class="channel-tag">LinkedIn RBM</span>
+          <span class="channel-tag">LinkedIn CL</span>
+          <span class="channel-tag">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 6</span>
+        <span class="week-date">28 mar–3 apr</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Bilancio 6 Settimane — FareRete</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">Cosa ha funzionato, cosa no · QEN Score vs certificazioni generiche · Tavolo territoriale FareRete</p>
+        <div class="channels">
+          <span class="channel-tag">Substack</span>
+          <span class="channel-tag">LinkedIn RBM</span>
+          <span class="channel-tag">LinkedIn CL</span>
+          <span class="channel-tag">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-week">
+        <span class="week-num">SETT. 7</span>
+        <span class="week-date">4–10 apr</span>
+      </div>
+      <div class="timeline-content">
+        <h4>Lancio Ufficiale — QEN + ASviS + FareRete</h4>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:0;">216 buone pratiche italiane · Come accedere alla QEN · Scalabilità nazionale · Pagina QEN definitiva</p>
+        <div class="channels">
+          <span class="channel-tag">Substack</span>
+          <span class="channel-tag">LinkedIn RBM</span>
+          <span class="channel-tag">LinkedIn CL</span>
+          <span class="channel-tag">CL.it</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TARGET PILOTI -->
+<section id="target">
+  <div class="section-header">
+    <div class="section-tag">04 · Piloti</div>
+    <div class="section-line"></div>
+  </div>
+  <h2>Target Pilota — Settimana 1</h2>
+  <p style="max-width:620px; margin-bottom:32px; font-size:14px; line-height:1.9;">
+    Cinque realtà bolognesi identificate per il primo assessment QEN gratuito. Selezionate per l'allineamento con i valori V_t, V_s, V_a.
+  </p>
+
+  <div class="targets-grid">
+    <div class="target-card">
+      <div class="name">Bottega Contadina</div>
+      <div class="location">Bologna · Fabio Gendusa</div>
+      <div class="scores">
+        <span class="score-badge">V_t ★★★</span>
+        <span class="score-badge">filiera locale esclusiva</span>
+      </div>
+    </div>
+    <div class="target-card">
+      <div class="name">Le Sfogline</div>
+      <div class="location">Via Belvedere, 7 · Bologna</div>
+      <div class="scores">
+        <span class="score-badge">V_t ★★★</span>
+        <span class="score-badge">V_s ★★</span>
+        <span class="score-badge">tradizione documentata</span>
+      </div>
+    </div>
+    <div class="target-card">
+      <div class="name">Bottega dei Grani Antichi</div>
+      <div class="location">Bologna</div>
+      <div class="scores">
+        <span class="score-badge">V_a ★★★</span>
+        <span class="score-badge">V_t ★★</span>
+        <span class="score-badge">biologico · non OGM</span>
+      </div>
+    </div>
+    <div class="target-card">
+      <div class="name">Trattoria Bertozzi</div>
+      <div class="location">Colli Bolognesi</div>
+      <div class="scores">
+        <span class="score-badge">V_t ★★★</span>
+        <span class="score-badge">km zero</span>
+        <span class="score-badge">linguaggio allineato</span>
+      </div>
+    </div>
+    <div class="target-card">
+      <div class="name">Ahimè</div>
+      <div class="location">Via San Gervasio, 6e · Bologna</div>
+      <div class="scores">
+        <span class="score-badge">V_s ★★</span>
+        <span class="score-badge">V_t ★★</span>
+        <span class="score-badge">vini naturali · stagionale</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONNESSIONI -->
+<section id="connessioni">
+  <div class="section-header">
+    <div class="section-tag">05 · Connessioni</div>
+    <div class="section-line"></div>
+  </div>
+  <h2>Nodi Attivi</h2>
+  <p style="margin-bottom:32px; font-size:14px;">Ecosistema CognitiveLogic — canali, strumenti, partner.</p>
+
+  <div class="links-grid">
+    <a href="https://fuorimenu.substack.com" class="link-card">
+      <span class="lc-tag">Newsletter</span>
+      <span class="lc-name">Fuori Menu</span>
+      <span class="lc-desc">Substack · Grafo Semantico QEN</span>
+    </a>
+    <a href="https://www.linkedin.com/in/robertobobmalini" class="link-card">
+      <span class="lc-tag">Profilo</span>
+      <span class="lc-name">Roberto Bob Malini</span>
+      <span class="lc-desc">LinkedIn · Senior Analyst</span>
+    </a>
+    <a href="https://www.linkedin.com/company/cognitivelogic" class="link-card">
+      <span class="lc-tag">Pagina</span>
+      <span class="lc-name">CognitiveLogic</span>
+      <span class="lc-desc">LinkedIn · AI-First Infrastructure</span>
+    </a>
+    <a href="https://github.com/CognitiveLogic2026" class="link-card">
+      <span class="lc-tag">Repository</span>
+      <span class="lc-name">GitHub</span>
+      <span class="lc-desc">CognitiveLogic2026 · Open Docs</span>
+    </a>
+  </div>
+
+  <div style="margin-top:32px; padding:20px; border:1px solid var(--border); background:var(--bg2);">
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">partner: ASviS — 216 buone pratiche italiane di sostenibilità</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">partner: FareRete — tavolo territoriale bolognese</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">candidatura: Bando Prospettive+ · scadenza 15 maggio 2026</span></div>
+    <div class="terminal-line"><span class="prompt">></span><span class="cmd">infra: Hetzner · Neo4j · GitHub Actions<span class="cursor"></span></span></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <span>COGNITIVE LOGIC</span> · Roberto Bob Malini · Olivia Wilson, CEO<br>
+    <span style="color:var(--text-dim); font-size:10px;">© CognitiveLogic 2026 · cognitivelogic.it</span>
+  </div>
+  <div style="text-align:right; font-size:10px; color:var(--text-dim);">
+    Principio guida:<br>
+    <em style="color:var(--green)">Prima presenza, poi relazione, poi proposta.</em>
+  </div>
+</footer>
+```
+
+  </main>
+
+  <script>
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      const t = now.toTimeString().split(' ')[0];
+      document.getElementById('clock').textContent = t;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Nav active state on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+      });
+    });
+
+    // Fade in on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section').forEach(s => {
+      s.style.opacity = '0';
+      s.style.transform = 'translateY(20px)';
+      s.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(s);
+    });
+  </script>
+
+</body>
+</html>
+# COGNITIVE LOGIC · QEN Framework
+
+> **Quota Etica Naturale** — AI-first rating framework per la filiera corta bolognese.
+
+**Roberto Bob Malini · Senior Analyst | Olivia Wilson, CEO**  
+cognitivelogic.it · [LinkedIn](https://www.linkedin.com/in/robertobobmalini) · [Substack](https://fuorimenu.substack.com)
+
+-----
+
+## Cos’è il QEN Score
+
+Il QEN Score è un algoritmo di rating etico-sostenibile per ristoratori, botteghe e piccoli produttori. Misura in modo trasparente e machine-readable il valore etico reale di un’impresa nella filiera corta.
+
+Nato a Bologna nel 2020, nel contesto dei Portici UNESCO e delle 100 Botteghe, il QEN è allineato agli standard GRI e alla direttiva europea CSRD per le PMI del settore HoReCa.
+
+-----
+
+## Formula
+
+```
+QEN Score = (V_a × 0,35) + (V_s × 0,40) + (V_t × 0,25)
+```
+
+|Variabile|Significato                                      |Peso|
+|---------|-------------------------------------------------|----|
+|**V_a**  |Valore Ambientale — emissioni, energia, packaging|35% |
+|**V_s**  |Valore Sociale — inclusione, welfare, contratti  |40% |
+|**V_t**  |Valore Territoriale — km zero, fornitori locali  |25% |
+
+-----
+
+## Struttura del Repository
+
+```
+qen-framework/
+├── index.html                        # Sito cognitivelogic.it
+├── README.md                         # Questo file
+├── docs/
+│   ├── QEN_specifiche_tecniche.docx  # Algoritmo completo · 9 indicatori
+│   └── calendario_editoriale_2026.docx
+├── graph/
+│   └── qen_knowledge_graph/          # Struttura semantica Neo4j
+└── assets/
+    └── QEN_pitch_linkedin.pdf        # Presentazione 10 slide
+```
+
+-----
+
+## Architettura
+
+- **Knowledge Graph** — Neo4j · struttura semantica machine-readable
+- **Infrastruttura** — Hetzner VPS · GitHub Actions
+- **Compliance** — Standard GRI · Direttiva CSRD
+- **Stack** — AI-first · Pure Data Node · agenti autonomi
+
+-----
+
+## Pilota Attivo · Bologna 2026
+
+Cinque realtà bolognesi in assessment QEN gratuito:
+
+- **Bottega Contadina** (Fabio Gendusa) — filiera locale esclusiva · V_t
+- **Le Sfogline** — Via Belvedere 7 — tradizione documentata · V_t + V_s
+- **Bottega dei Grani Antichi** — biologico · cereali non OGM · V_a + V_t
+- **Trattoria Bertozzi** — km zero Colli Bolognesi · V_t
+- **Ahimè** — Via San Gervasio 6e — vini naturali · menu stagionale · V_s + V_t
+
+-----
+
+## Piano Editoriale · Feb–Apr 2026
+
+7 settimane di contenuti coordinati su Substack, LinkedIn, CognitiveLogic.it
+
+|Settimana       |Focus                                           |Canali|
+|----------------|------------------------------------------------|------|
+|1 ★ 21–27 feb   |Lancio QEN · struttura e presentazione          |Tutti |
+|2 · 28 feb–6 mar|Origini · Bologna 2020 · Portici UNESCO         |Tutti |
+|3 · 7–13 mar    |CSRD · compliance · accesso al credito ESG      |Tutti |
+|4 · 14–20 mar   |Caso concreto · primo pilota · QEN Score reale  |Tutti |
+|5 · 21–27 mar   |Knowledge Graph · aggiornamento semantico       |Tutti |
+|6 · 28 mar–3 apr|Bilancio 6 settimane · FareRete                 |Tutti |
+|7 · 4–10 apr    |Lancio ufficiale · ASviS · scalabilità nazionale|Tutti |
+
+-----
+
+## Partner e Connessioni
+
+- **ASviS** — 216 buone pratiche italiane di sostenibilità
+- **FareRete** — tavolo territoriale bolognese
+- **Bando Prospettive+** — candidatura · scadenza 15 maggio 2026
+
+-----
+
+## Principio Guida
+
+> *Prima presenza, poi relazione, poi proposta.*
+
+I parametri di calcolo QEN sono pubblici per principio: la trasparenza è il fondamento del framework.
+
+-----
+
+© CognitiveLogic 2026 · [cognitivelogic.it](https://www.cognitivelogic.it)
