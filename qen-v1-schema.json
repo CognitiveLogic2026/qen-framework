@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QEN Framework v1.0 Operational Data Schema",
+  "description": "Schema per la validazione dei 9 parametri operativi necessari alla conformità Green Claim UE 2024/825.",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "restaurant_id": { "type": "string" },
+        "report_date": { "type": "string", "format": "date" },
+        "framework_version": { "type": "string", "const": "1.0" }
+      }
+    },
+    "operational_metrics": {
+      "type": "object",
+      [span_2](start_span)"description": "I 9 dati fondamentali estratti dall'operatività quotidiana[span_2](end_span).",
+      "properties": {
+        "supply_chain_km": { 
+          "type": "number", 
+          [span_3](start_span)"description": "Distanza media ponderata dei fornitori per validazione 'Km Zero'[span_3](end_span)." 
+        },
+        "certified_sustainable_ratio": { 
+          "type": "number", 
+          "minimum": 0, "maximum": 1,
+          [span_4](start_span)"description": "Percentuale materie prime con certificazioni verificabili[span_4](end_span)." 
+        },
+        "energy_efficiency_kwh": { "type": "number" },
+        "waste_reduction_index": { "type": "number" },
+        "water_footprint_liters": { "type": "number" },
+        "menu_natural_purity": { "type": "number" },
+        "cleaning_chemical_eco_rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "staff_esg_training_hours": { "type": "number" },
+        "logistics_traceability_score": { "type": "number" }
+      },
+      "required": ["supply_chain_km", "certified_sustainable_ratio", "energy_efficiency_kwh"]
+    }
+  }
+}
