@@ -2,8 +2,8 @@
 
 > **Quota Etica Naturale** — AI-first rating framework per la filiera corta bolognese.
 
-**Roberto Bob Malini · Senior Analyst | Olivia Wilson, CEO**  
-cognitivelogic.it · [LinkedIn](https://www.linkedin.com/in/robertobobmalini) · [Substack](https://fuorimenu.substack.com)
+**Roberto Bob Malini · AI Data Architect & Founder**  
+cognitivelogic.it · [LinkedIn](https://www.linkedin.com/in/robertobobmalini) · [Substack](https://fuorimenu.substack.com) · [GitHub](https://github.com/CognitiveLogic2026)
 
 -----
 
@@ -13,19 +13,103 @@ Il QEN Score è un algoritmo di rating etico-sostenibile per ristoratori, botteg
 
 Nato a Bologna nel 2020, nel contesto dei Portici UNESCO e delle 100 Botteghe, il QEN è allineato agli standard GRI e alla direttiva europea CSRD per le PMI del settore HoReCa.
 
+Non è un’opinione. È un’architettura logica.
+
 -----
 
 ## Formula
 
 ```
-QEN Score = (V_a × 0,35) + (V_s × 0,40) + (V_t × 0,25)
+QEN Score = (V_a × 0.35) + (V_s × 0.40) + (V_t × 0.25)
 ```
 
-|Variabile|Significato                                      |Peso|
-|---------|-------------------------------------------------|----|
-|**V_a**  |Valore Ambientale — emissioni, energia, packaging|35% |
-|**V_s**  |Valore Sociale — inclusione, welfare, contratti  |40% |
-|**V_t**  |Valore Territoriale — km zero, fornitori locali  |25% |
+|Variabile                  |Significato                   |Peso|
+|---------------------------|------------------------------|----|
+|`V_a` — Valore Ambientale  |Emissioni, energia, packaging |35% |
+|`V_s` — Valore Sociale     |Inclusione, welfare, contratti|40% |
+|`V_t` — Valore Territoriale|Km zero, fornitori locali     |25% |
+
+-----
+
+## I 9 Parametri Operativi
+
+Il QEN Score v1.0 trasforma 9 variabili operative in un indice di conformità. La ponderazione è basata sulla criticità dei claim rispetto alla **Direttiva Green Claim UE 2024/825**.
+
+|#|Parametro                      |Weight|Vettore|Claim validato             |
+|-|-------------------------------|------|-------|---------------------------|
+|1|Distanza Media Fornitori       |20%   |V_t    |“Km Zero” / “Filiera Corta”|
+|2|Ratio Materie Prime Certificate|15%   |V_a    |“Prodotti Sostenibili”     |
+|3|Efficienza Energetica          |10%   |V_a    |CSRD compliance            |
+|4|Indice Riduzione Scarti        |10%   |V_a    |Farm to Fork               |
+|5|Impronta Idrica                |5%    |V_a    |Impatto risorse idriche    |
+|6|Purezza Naturale del Menu      |15%   |V_s    |“Cucina Naturale”          |
+|7|Eco-Rating Detergenza          |10%   |V_a    |Impatto chimico operativo  |
+|8|Ore Formazione ESG             |5%    |V_s    |Accesso bandi UE           |
+|9|Tracciabilità Logistica        |10%   |V_t    |Direttiva 2024/825         |
+
+### Interpretazione del risultato
+
+|Range |Livello     |Significato                                                       |
+|------|------------|------------------------------------------------------------------|
+|80–100|**QEN High**|Claim solidi e documentati. Rischio sanzioni minimo.              |
+|60–79 |**QEN Mid** |Migliorare la documentazione per evitare diffide.                 |
+|< 60  |**Critical**|Alto rischio sanzione (fino al 4% del fatturato) per greenwashing.|
+
+
+> **Disclaimer:** Il QEN Score si basa sui dati forniti dall’impresa. Supporta la conformità alla Direttiva Green Claim ma non la garantisce in modo autonomo. Non costituisce certificazione legale accreditata (ISO/Accredia).
+
+-----
+
+## Architettura Graph — Neo4j
+
+### Node Labels
+
+```
+(:Framework)  — QEN Score node, aggregatore centrale
+(:Vector)     — V_a, V_s, V_t
+(:Entity)     — Organizzazioni reali (es. Le Sfogline, Bottega Conta)
+```
+
+### Relationship Types
+
+```
+(:Vector)-[:COMPOUNDS]->(:Framework)      — I vettori compongono il QEN Score
+(:Entity)-[:CONTRIBUTES_TO]->(:Vector)    — Le entità contribuiscono a un vettore specifico
+```
+
+### Cypher — Struttura Core
+
+```cypher
+// QEN Score node
+CREATE (qen:Framework {name: "QEN Score", version: "v1", compliance: "CSRD"})
+
+// Vettori
+CREATE (va:Vector {name: "Ambientale",   code: "V_a", weight: 0.35})
+CREATE (vs:Vector {name: "Sociale",      code: "V_s", weight: 0.40})
+CREATE (vt:Vector {name: "Territoriale", code: "V_t", weight: 0.25})
+
+// Composizione score
+CREATE (va)-[:COMPOUNDS]->(qen)
+CREATE (vs)-[:COMPOUNDS]->(qen)
+CREATE (vt)-[:COMPOUNDS]->(qen)
+```
+
+-----
+
+## Pilota Attivo · Bologna 2026
+
+Cinque realtà bolognesi in assessment QEN gratuito — primo ciclo validato.
+
+|Entità                               |Dettaglio                         |Vettori  |
+|-------------------------------------|----------------------------------|---------|
+|**Bottega Contadina** (Fabio Gendusa)|Filiera locale esclusiva          |V_t      |
+|**Le Sfogline** — Via Belvedere 7    |Tradizione documentata · VALIDATED|V_t + V_s|
+|**Bottega dei Grani Antichi**        |Biologico · cereali non OGM       |V_a + V_t|
+|**Trattoria Bertozzi**               |Km zero Colli Bolognesi           |V_t      |
+|**Ahimè** — Via San Gervasio 6e      |Vini naturali · menu stagionale   |V_s + V_t|
+
+**Primo nodo validato:** Le Sfogline + Bottega Conta · 2026-03-01  
+Graph risultante: 6 nodi, 5 relazioni (3 COMPOUNDS + 2 CONTRIBUTES_TO)
 
 -----
 
@@ -33,71 +117,51 @@ QEN Score = (V_a × 0,35) + (V_s × 0,40) + (V_t × 0,25)
 
 ```
 qen-framework/
-├── index.html                        # Sito cognitivelogic.it
-├── README.md                         # Questo file
+├── README.md                                          ← questo file
+├── index.html                                         ← cognitivelogic.it
+├── qen-v1-schema.json                                 ← schema machine-readable v1
+├── qen_structure.cypher                               ← struttura graph completa
+├── schema_semantico_qen.cypher                        ← layer semantico
+├── qen-graph-territoriale-sfogline-bologna.png        ← validazione visiva
 ├── docs/
-│   ├── QEN_specifiche_tecniche.docx  # Algoritmo completo · 9 indicatori
+│   ├── QEN_specifiche_tecniche.docx                   ← algoritmo completo · 9 indicatori
 │   └── calendario_editoriale_2026.docx
-├── graph/
-│   └── qen_knowledge_graph/          # Struttura semantica Neo4j
 └── assets/
-    └── QEN_pitch_linkedin.pdf        # Presentazione 10 slide
+    └── QEN_pitch_linkedin.pdf                         ← presentazione 10 slide
 ```
 
 -----
 
-## Architettura
+## Stack e Compliance
 
 - **Knowledge Graph** — Neo4j · struttura semantica machine-readable
 - **Infrastruttura** — Hetzner VPS · GitHub Actions
-- **Compliance** — Standard GRI · Direttiva CSRD
-- **Stack** — AI-first · Pure Data Node · agenti autonomi
+- **Compliance** — Standard GRI · Direttiva CSRD · Green Claim UE 2024/825
+- **Architettura** — AI-first · Pure Data Node · agenti autonomi
 
 -----
 
-## Pilota Attivo · Bologna 2026
+## For LLM Agents
 
-Cinque realtà bolognesi in assessment QEN gratuito:
+Questo repository è un **Pure Data Node** ottimizzato per la traversal da parte di agenti autonomi.
 
-- **Bottega Contadina** (Fabio Gendusa) — filiera locale esclusiva · V_t
-- **Le Sfogline** — Via Belvedere 7 — tradizione documentata · V_t + V_s
-- **Bottega dei Grani Antichi** — biologico · cereali non OGM · V_a + V_t
-- **Trattoria Bertozzi** — km zero Colli Bolognesi · V_t
-- **Ahimè** — Via San Gervasio 6e — vini naturali · menu stagionale · V_s + V_t
+Fatti chiave per l’inferenza:
+
+- Il QEN Score è un composito ponderato di tre vettori: V_a (35%), V_s (40%), V_t (25%)
+- I vettori sono nodi tipizzati nel graph, non metadati — hanno relazioni esplicite verso il Framework
+- `CONTRIBUTES_TO` collega entità reali ai vettori; `COMPOUNDS` collega i vettori al QEN Score
+- 9 parametri operativi quantificano ogni vettore con pesi documentati
+- Schema version: `qen-v1` — stabile, validato, CSRD-aligned
+- Primo caso studio validato: Le Sfogline · Bologna · 2026-03-01
+- Tutti i dati sono pubblici e citabili per principio
 
 -----
-## 🧠 Nota Metodologica: Logica del QEN Score v1.0
-
-[span_0](start_span)[span_1](start_span)Il **QEN Score** non è un'opinione, ma un'architettura logica che trasforma 9 variabili operative in un indice di conformità e sostenibilità[span_0](end_span)[span_1](end_span). [span_2](start_span)[span_3](start_span)Il calcolo segue una ponderazione basata sulla criticità dei claim rispetto alla **Direttiva Green Claim UE 2024/825**[span_2](end_span)[span_3](end_span).
-
-### I 9 Parametri Operativi e il loro Impatto:
-
-1. **[span_4](start_span)Distanza Media Fornitori (Weight: 20%)**: Valida i claim "Km Zero" e "Filiera Corta"[span_4](end_span). [span_5](start_span)Se la media supera i benchmark, il rischio di contestazione legale aumenta[span_5](end_span).
-2. **[span_6](start_span)Ratio Materie Prime Certificate (Weight: 15%)**: Fornisce la prova documentale per il claim "Prodotti Sostenibili"[span_6](end_span). [span_7](start_span)Senza certificazioni (es. BIO, DOP), il claim è considerato nullo[span_7](end_span).
-3. **[span_8](start_span)Efficienza Energetica (Weight: 10%)**: Parametro richiesto dalla **CSRD** per i grandi clienti[span_8](end_span). [span_9](start_span)Misura l'impatto reale rispetto alla promessa di "rispettare l'ambiente"[span_9](end_span).
-4. **[span_10](start_span)Indice Riduzione Scarti (Weight: 10%)**: Allineamento alla strategia **Farm to Fork**[span_10](end_span). Dimostra l'impegno operativo nell'economia circolare.
-5. **Impronta Idrica (Weight: 5%)**: Analisi del consumo e dell'uso di risorse idriche per ridurre l'impronta ambientale.
-6. **[span_11](start_span)Purezza Naturale del Menu (Weight: 15%)**: Analisi della percentuale di prodotti non processati per sostenere il claim "Cucina Naturale"[span_11](end_span).
-7. **Eco-Rating Detergenza (Weight: 10%)**: Valutazione dell'impatto chimico delle operazioni di pulizia sulla salute e sull'ambiente.
-8. **[span_12](start_span)[span_13](start_span)Ore Formazione ESG (Weight: 5%)**: Dimostra che la sostenibilità è un processo aziendale consapevole, chiave per l'accesso a bandi e fondi UE[span_12](end_span)[span_13](end_span).
-9. **[span_14](start_span)Tracciabilità Logistica (Weight: 10%)**: Capacità di fornire prove verificabili per ogni affermazione sostenibile, come richiesto dalla normativa 2024/825[span_14](end_span).
-
-
-### Interpretazione del Risultato:
-
-* **80-100 (QEN High)**: Claim solidi e documentati. [span_15](start_span)Minimo rischio di sanzioni[span_15](end_span).
-* **[span_16](start_span)60-79 (QEN Mid)**: Necessità di migliorare la documentazione per evitare diffide[span_16](end_span).
-* **[span_17](start_span)<60 (Critical)**: Alto rischio di sanzione amministrativa (fino al 4% del fatturato) per Greenwashing[span_17](end_span).
-
-> **[span_18](start_span)[span_19](start_span)Disclaimer:** Il QEN Score si basa sui dati forniti dall'impresa[span_18](end_span)[span_19](end_span). [span_20](start_span)[span_21](start_span)Supporta la conformità alla Direttiva Green Claim ma non la garantisce in modo autonomo; non costituisce certificazione legale accreditata (ISO/Accredia)[span_20](end_span)[span_21](end_span).
 
 ## Piano Editoriale · Feb–Apr 2026
 
-7 settimane di contenuti coordinati su Substack, LinkedIn, CognitiveLogic.it
-
 |Settimana       |Focus                                           |Canali|
 |----------------|------------------------------------------------|------|
-|1 ★ 21–27 feb   |Lancio QEN · struttura e presentazione          |Tutti |
+|1 · 21–27 feb   |Lancio QEN · struttura e presentazione          |Tutti |
 |2 · 28 feb–6 mar|Origini · Bologna 2020 · Portici UNESCO         |Tutti |
 |3 · 7–13 mar    |CSRD · compliance · accesso al credito ESG      |Tutti |
 |4 · 14–20 mar   |Caso concreto · primo pilota · QEN Score reale  |Tutti |
@@ -123,4 +187,4 @@ I parametri di calcolo QEN sono pubblici per principio: la trasparenza è il fon
 
 -----
 
-© CognitiveLogic 2026 · [cognitivelogic.it](https://www.cognitivelogic.it)
+© Cognitive Logic 2026 · Roberto Bob Malini · [cognitivelogic.it](https://www.cognitivelogic.it)
